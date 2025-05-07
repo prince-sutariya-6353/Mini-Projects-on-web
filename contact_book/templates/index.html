@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Book</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Contact Book</h1>
+            <div class="theme-toggle">
+                <input type="checkbox" id="darkModeToggle" class="toggle-checkbox">
+                <label for="darkModeToggle" class="toggle-label">
+                    <span class="toggle-inner"></span>
+                    <span class="toggle-switch"></span>
+                </label>
+            </div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="searchBox" placeholder="Search contacts..." class="search-box">
+        </div>
+
+        <div class="actions-container">
+            <form action="/add" method="POST" class="add-form">
+                <input type="text" name="name" placeholder="Name" required>
+                <input type="text" name="phone" placeholder="Phone" required>
+                <input type="email" name="email" placeholder="Email" required>
+                <select name="category" class="category-select" required>
+                    <option value="none" selected>None</option>
+                    <option value="family">Family</option>
+                    <option value="friend">Friend</option>
+                    <option value="work">Work</option>
+                    <option value="other">Other</option>
+                </select>
+                <button type="submit" class="btn-add">Add Contact</button>
+            </form>
+
+            <div class="import-export">
+                <a href="/export" class="btn-export">Export CSV</a>
+                <form action="/import" method="POST" enctype="multipart/form-data" class="import-form">
+                    <input type="file" name="file" id="importFile" accept=".csv" class="file-input">
+                    <label for="importFile" class="file-label">Choose CSV</label>
+                    <button type="submit" class="btn-import">Import</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="contactsTable">
+                <thead>
+                    <tr>
+                        <th data-sort="name">Name <span class="sort-icon">↕</span></th>
+                        <th data-sort="phone">Phone <span class="sort-icon">↕</span></th>
+                        <th data-sort="email">Email <span class="sort-icon">↕</span></th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contact in contacts %}
+                    <tr>
+                        <form action="/update/{{ contact._id }}" method="POST">
+                            <td><input type="text" name="name" value="{{ contact.name }}"></td>
+                            <td><input type="text" name="phone" value="{{ contact.phone }}"></td>
+                            <td><input type="email" name="email" value="{{ contact.email }}"></td>
+                            <td>
+                                <select name="category" class="category-select">
+                                    <option value="none" {% if contact.get('category') == 'none' or not contact.get('category') %}selected{% endif %}>None</option>
+                                    <option value="family" {% if contact.get('category') == 'family' %}selected{% endif %}>Family</option>
+                                    <option value="friend" {% if contact.get('category') == 'friend' %}selected{% endif %}>Friend</option>
+                                    <option value="work" {% if contact.get('category') == 'work' %}selected{% endif %}>Work</option>
+                                    <option value="other" {% if contact.get('category') == 'other' %}selected{% endif %}>Other</option>
+                                </select>
+                            </td>
+                            <td class="actions">
+                                <button type="submit" class="btn-update">Update</button>
+                                <a href="/delete/{{ contact._id }}" class="btn-delete">Delete</a>
+                            </td>
+                        </form>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
