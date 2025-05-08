@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (searchBox) {
     searchBox.addEventListener('input', function() {
       const searchTerm = this.value.toLowerCase().trim();
-      const rows = document.querySelectorAll('table tbody tr');
+        const rows = document.querySelectorAll('table tbody tr');
 
       rows.forEach(row => {
         // Get values from input fields
