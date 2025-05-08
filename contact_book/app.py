@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, Response
+from flask import Flask, render_template, request, redirect, url_for, Response
 from pymongo import MongoClient
 from urllib.parse import quote_plus
 import csv
@@ -20,13 +20,21 @@ cluster = os.getenv("MONGO_CLUSTER")
 app_name = os.getenv("MONGO_APP_NAME")
 
 MONGO_URI = f"mongodb+srv://{username}:{password}@{cluster}/?retryWrites=true&w=majority&appName={app_name}"
-client = MongoClient(MONGO_URI)
+try:
+    client = MongoClient(MONGO_URI)
+    client.server_info()  # Test connection
+    print("Connected to MongoDB Atlas successfully!")
+except Exception as e:
+    print(f"Failed to connect to MongoDB Atlas: {e}")
+    raise e
+
 db = client["contacts_db"]
 contacts_collection = db["contacts"]
 
 @app.route('/')
 def index():
     contacts = list(contacts_collection.find())
+    print("Fetched contacts:", contacts)  # Debug line to verify data fetching
     return render_template('index.html', contacts=contacts)
 
 @app.route('/add', methods=['POST'])
@@ -43,10 +51,9 @@ def add_contact():
             'email': email,
             'category': category
         })
-        flash('Contact added successfully.', 'success')
+        return redirect(url_for('index', added=True))
     else:
-        flash('All fields are required.', 'danger')
-    return redirect(url_for('index'))
+        return redirect(url_for('index', error=True))
 
 @app.route('/update/<string:contact_id>', methods=['POST'])
 def update_contact(contact_id):
@@ -65,16 +72,14 @@ def update_contact(contact_id):
                 'category': category
             }}
         )
-        flash('Contact updated successfully.', 'success')
+        return redirect(url_for('index', updated=True))
     else:
-        flash('All fields are required to update.', 'danger')
-    return redirect(url_for('index'))
+        return redirect(url_for('index', error=True))
 
 @app.route('/delete/<string:contact_id>')
 def delete_contact(contact_id):
     contacts_collection.delete_one({'_id': ObjectId(contact_id)})
-    flash('Contact deleted.', 'warning')
-    return redirect(url_for('index'))
+    return redirect(url_for('index', deleted=True))
 
 @app.route('/export')
 def export_contacts():
@@ -107,11 +112,9 @@ def import_contacts():
                     'category': row[3] if len(row) > 3 else 'none'
                 })
                 imported += 1
-        flash(f'{imported} contacts imported successfully.', 'success')
+        return redirect(url_for('index', imported=imported))
     else:
-        flash('Invalid file or format.', 'danger')
-
-    return redirect(url_for('index'))
+        return redirect(url_for('index', error=True))
 
 if __name__ == '__main__':
     app.run(debug=True)
