@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, url_for, flash, Response
 from pymongo import MongoClient
 from urllib.parse import quote_plus
@@ -114,5 +113,9 @@ def import_contacts():
 
     return redirect(url_for('index'))
 
+# This is for local development
 if __name__ == '__main__':
     app.run(debug=True)
+    
+# For Vercel, we need this app instance to be used
+app = app
